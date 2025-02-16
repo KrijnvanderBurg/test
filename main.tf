@@ -9,8 +9,7 @@
  */
 
 module "adb_with_private_links_exfiltration_protection" {
-                     https://github.com/databricks/terraform-databricks-examples/blob/v0.2.21/cicd-pipelines/manual-approve-with-azure-devops/azure-pipelines.yml
-  source           = "github.com/databricks/terraform-databricks-examples/modules/adb-with-private-links-exfiltration-protection"
+  source           = "https://github.com/databricks/terraform-databricks-examples/tree/main/modules/adb-with-private-links-exfiltration-protection"
   hubcidr          = var.hubcidr
   spokecidr        = var.spokecidr
   rglocation       = var.rglocation
