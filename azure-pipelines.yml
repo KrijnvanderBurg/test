@@ -2,9 +2,6 @@
 
 name: ' Validate Terraform code: '
 
-variables:
-  - group: 'TerraformProdDeploy'
-
 # We disable builds for any commits as everything should go through pull requests
 trigger: none
 
