@@ -9,7 +9,7 @@
  */
 
 module "adb_with_private_links_exfiltration_protection" {
-  source           = "https://github.com/databricks/terraform-databricks-examples/tree/main/modules/adb-with-private-links-exfiltration-protection"
+  source           = "./modules/adb-with-private-links-exfiltration-protection"
   hubcidr          = var.hubcidr
   spokecidr        = var.spokecidr
   rglocation       = var.rglocation
