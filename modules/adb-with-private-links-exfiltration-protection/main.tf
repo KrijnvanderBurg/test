@@ -17,10 +17,6 @@ resource "random_string" "naming" {
 data "azurerm_client_config" "current" {
 }
 
-data "external" "me" {
-  program = ["az", "account", "show", "--query", "user"]
-}
-
 locals {
   // dltp - databricks labs terraform provider
   prefix   = join("-", [var.workspace_prefix, "${random_string.naming.result}"])
@@ -30,7 +26,7 @@ locals {
 
   // tags that are propagated down to all resources
   tags = merge({
-    Owner = lookup(data.external.me.result, "name")
+    Owner = "krijn"
     Epoch = random_string.naming.result
   }, var.tags)
 }
