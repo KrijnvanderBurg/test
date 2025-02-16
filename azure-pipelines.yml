@@ -12,10 +12,10 @@ pr:
   branches:
     include:
     - main
-  paths:
-    # We want to handle only changes relevant for this pipeline
-    include:
-    exclude:
+  # paths:
+  #   # We want to handle only changes relevant for this pipeline
+  #   include:
+  #   exclude:
 
 pool:
   vmImage: 'ubuntu-latest'
