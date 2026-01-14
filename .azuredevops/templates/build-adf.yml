@@ -1,0 +1,60 @@
+# Template for building ADF ARM templates for an environment
+
+parameters:
+  - name: environment
+    type: string
+  - name: variableFile
+    type: string
+
+stages:
+  - stage: Build_${{ replace(parameters.environment, '-', '_') }}
+    displayName: Build ${{ parameters.environment }}
+    variables:
+      - template: ../${{ parameters.variableFile }}
+    jobs:
+      - job: BuildArmTemplates
+        displayName: Validate and Generate ARM Templates
+        steps:
+          - task: UseNode@1
+            inputs:
+              version: 20.x
+            displayName: Install Node.js
+
+          - task: Npm@1
+            inputs:
+              command: install
+              workingDir: $(Build.Repository.LocalPath)/.azuredevops
+              verbose: true
+            displayName: Install npm packages
+
+          - task: Npm@1
+            inputs:
+              command: custom
+              workingDir: $(Build.Repository.LocalPath)/.azuredevops
+              customCommand: run build validate $(Build.Repository.LocalPath)/adf /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName)
+            displayName: Validate ADF resources
+
+          - task: Npm@1
+            inputs:
+              command: custom
+              workingDir: $(Build.Repository.LocalPath)/.azuredevops
+              customCommand: run build export $(Build.Repository.LocalPath)/adf /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName) ArmTemplate
+            displayName: Generate ARM templates
+
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: $(Build.Repository.LocalPath)/.azuredevops/scripts
+              Contents: "**/*.ps1"
+              TargetFolder: $(Build.Repository.LocalPath)/.azuredevops/ArmTemplate
+            displayName: Copy deployment scripts
+
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: $(Build.Repository.LocalPath)/.azuredevops/parameters
+              Contents: "**/*.json"
+              TargetFolder: $(Build.Repository.LocalPath)/.azuredevops/ArmTemplate/parameters
+            displayName: Copy parameter files
+
+          - publish: $(Build.Repository.LocalPath)/.azuredevops/ArmTemplate
+            artifact: ArmTemplate-${{ parameters.environment }}
+            displayName: Publish ARM templates

@@ -1,0 +1,14 @@
+{
+  "name": "adf-cicd-build",
+  "version": "1.0.0",
+  "description": "Azure Data Factory CI/CD build package for ARM template generation",
+  "scripts": {
+    "build": "node node_modules/@microsoft/azure-data-factory-utilities/lib/index"
+  },
+  "dependencies": {
+    "@microsoft/azure-data-factory-utilities": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

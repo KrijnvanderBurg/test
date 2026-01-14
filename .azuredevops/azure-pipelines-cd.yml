@@ -1,0 +1,48 @@
+# Azure Data Factory CI/CD Pipeline
+# Validates, builds ARM templates, and deploys to int-dev and int-acc environments
+# Supports both standard templates and linked templates (>256 resources)
+#
+# Based on Microsoft documentation:
+# - https://learn.microsoft.com/en-us/azure/data-factory/continuous-integration-delivery
+# - https://learn.microsoft.com/en-us/azure/data-factory/continuous-integration-delivery-improvements
+# - https://learn.microsoft.com/en-us/azure/data-factory/continuous-integration-delivery-linked-templates
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - adf/*
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  # Build for int-dev
+  - template: templates/build-adf.yml
+    parameters:
+      environment: int-dev
+      variableFile: variables/int-dev.yml
+
+  # Deploy to int-dev
+  - template: templates/deploy-adf.yml
+    parameters:
+      environment: adf-int-dev
+      variableFile: variables/int-dev.yml
+      parametersFile: int-dev.parameters.json
+      artifactName: ArmTemplate-int-dev
+
+  # Build for int-acc
+  - template: templates/build-adf.yml
+    parameters:
+      environment: int-acc
+      variableFile: variables/int-acc.yml
+
+  # Deploy to int-acc
+  - template: templates/deploy-adf.yml
+    parameters:
+      environment: adf-int-acc
+      variableFile: variables/int-acc.yml
+      parametersFile: int-acc.parameters.json
+      artifactName: ArmTemplate-int-acc

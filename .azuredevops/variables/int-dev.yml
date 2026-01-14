@@ -1,0 +1,11 @@
+# int-dev environment variables
+variables:
+  azureServiceConnection: <azure-service-connection>
+  subscriptionId: <subscription-id>
+  resourceGroupName: <int-dev-resource-group>
+  dataFactoryName: <int-dev-adf-name>
+  location: <azure-region>
+  sharedIRResourceId: /subscriptions/<subscription-id>/resourceGroups/<hub-rg>/providers/Microsoft.DataFactory/factories/<hub-adf>/integrationRuntimes/PlaceholderSHIR
+  # Linked templates storage (required for >256 resources)
+  storageAccountName: <storage-account>
+  storageAccountResourceGroup: <storage-rg>

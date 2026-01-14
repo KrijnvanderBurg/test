@@ -1,0 +1,19 @@
+# Ignore npm dependencies
+node_modules/
+
+# Generated ARM templates (created during CI build)
+.azuredevops/ArmTemplate/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "AzureKeyVault_properties_typeProperties_baseUrl": {
+      "value": "https://<test-keyvault-name>.vault.azure.net/"
+    },
+    "LinkedSelfHostedIR_properties_typeProperties_linkedInfo_resourceId": {
+      "value": "/subscriptions/<test-subscription-id>/resourceGroups/<test-hub-rg>/providers/Microsoft.DataFactory/factories/<test-hub-adf-name>/integrationRuntimes/PlaceholderSHIR"
+    }
+  }
+}
