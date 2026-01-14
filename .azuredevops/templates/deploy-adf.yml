@@ -5,10 +5,7 @@
 parameters:
   - name: environment
     type: string
-  - name: variableFile
-    type: string
-  - name: parametersFile
-    type: string
+
   - name: artifactName
     type: string
 
@@ -16,7 +13,7 @@ stages:
   - stage: ${{ replace(parameters.environment, '-', '_') }}
     displayName: Deploy to ${{ parameters.environment }}
     variables:
-      - template: ../${{ parameters.variableFile }}
+      - template: /.azuredevops/variables/${{ parameters.environment }}.yml
     jobs:
       - deployment: DeployADF
         displayName: Deploy ADF to ${{ parameters.environment }}
@@ -42,12 +39,12 @@ stages:
                       if (Test-Path $linkedPath) {
                         Write-Host "##vso[task.setvariable variable=useLinkedTemplates]true"
                         Write-Host "##vso[task.setvariable variable=templateFile]$linkedPath/ArmTemplate_master.json"
-                        Write-Host "##vso[task.setvariable variable=templateParametersFile]$(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.parametersFile }}"
+                        Write-Host "##vso[task.setvariable variable=templateParametersFile]$(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.environment }}.parameters.json"
                         Write-Host "Linked templates detected - factory has >256 resources"
                       } else {
                         Write-Host "##vso[task.setvariable variable=useLinkedTemplates]false"
                         Write-Host "##vso[task.setvariable variable=templateFile]$(Pipeline.Workspace)/${{ parameters.artifactName }}/ARMTemplateForFactory.json"
-                        Write-Host "##vso[task.setvariable variable=templateParametersFile]$(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.parametersFile }}"
+                        Write-Host "##vso[task.setvariable variable=templateParametersFile]$(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.environment }}.parameters.json"
                         Write-Host "Standard template detected"
                       }
                     pwsh: true

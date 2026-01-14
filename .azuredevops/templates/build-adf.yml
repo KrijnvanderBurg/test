@@ -3,14 +3,15 @@
 parameters:
   - name: environment
     type: string
-  - name: variableFile
+
+  - name: artifactName
     type: string
 
 stages:
   - stage: Build_${{ replace(parameters.environment, '-', '_') }}
     displayName: Build ${{ parameters.environment }}
     variables:
-      - template: ../${{ parameters.variableFile }}
+      - template: /.azuredevops/variables/${{ parameters.environment }}.yml
     jobs:
       - job: BuildArmTemplates
         displayName: Validate and Generate ARM Templates
@@ -22,39 +23,36 @@ stages:
 
           - task: Npm@1
             inputs:
-              command: install
-              workingDir: $(Build.Repository.LocalPath)/.azuredevops
-              verbose: true
+              command: ci
+              workingDir: $(Build.SourcesDirectory)/.azuredevops
             displayName: Install npm packages
 
           - task: Npm@1
             inputs:
               command: custom
-              workingDir: $(Build.Repository.LocalPath)/.azuredevops
-              customCommand: run build validate $(Build.Repository.LocalPath)/adf /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName)
+              customCommand: run build validate $(Build.SourcesDirectory)/adf /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName) --prefix $(Build.SourcesDirectory)/.azuredevops
             displayName: Validate ADF resources
 
           - task: Npm@1
             inputs:
               command: custom
-              workingDir: $(Build.Repository.LocalPath)/.azuredevops
-              customCommand: run build export $(Build.Repository.LocalPath)/adf /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName) ArmTemplate
+              customCommand: run build export $(Build.SourcesDirectory)/adf /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName) $(Build.ArtifactStagingDirectory) --prefix $(Build.SourcesDirectory)/.azuredevops
             displayName: Generate ARM templates
 
           - task: CopyFiles@2
             inputs:
-              SourceFolder: $(Build.Repository.LocalPath)/.azuredevops/scripts
+              SourceFolder: $(Build.SourcesDirectory)/.azuredevops/scripts
               Contents: "**/*.ps1"
-              TargetFolder: $(Build.Repository.LocalPath)/.azuredevops/ArmTemplate
+              TargetFolder: $(Build.ArtifactStagingDirectory)
             displayName: Copy deployment scripts
 
           - task: CopyFiles@2
             inputs:
-              SourceFolder: $(Build.Repository.LocalPath)/.azuredevops/parameters
+              SourceFolder: $(Build.SourcesDirectory)/.azuredevops/parameters
               Contents: "**/*.json"
-              TargetFolder: $(Build.Repository.LocalPath)/.azuredevops/ArmTemplate/parameters
+              TargetFolder: $(Build.ArtifactStagingDirectory)/parameters
             displayName: Copy parameter files
 
-          - publish: $(Build.Repository.LocalPath)/.azuredevops/ArmTemplate
-            artifact: ArmTemplate-${{ parameters.environment }}
+          - publish: $(Build.ArtifactStagingDirectory)
+            artifact: ${{ parameters.artifactName }}
             displayName: Publish ARM templates

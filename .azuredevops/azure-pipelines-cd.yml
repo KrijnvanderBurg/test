@@ -23,26 +23,22 @@ stages:
   - template: templates/build-adf.yml
     parameters:
       environment: int-dev
-      variableFile: variables/int-dev.yml
+      artifactName: ArmTemplate-int-dev
 
   # Deploy to int-dev
   - template: templates/deploy-adf.yml
     parameters:
-      environment: adf-int-dev
-      variableFile: variables/int-dev.yml
-      parametersFile: int-dev.parameters.json
+      environment: int-dev
       artifactName: ArmTemplate-int-dev
 
   # Build for int-acc
   - template: templates/build-adf.yml
     parameters:
       environment: int-acc
-      variableFile: variables/int-acc.yml
+      artifactName: ArmTemplate-int-acc
 
   # Deploy to int-acc
   - template: templates/deploy-adf.yml
     parameters:
-      environment: adf-int-acc
-      variableFile: variables/int-acc.yml
-      parametersFile: int-acc.parameters.json
+      environment: int-acc
       artifactName: ArmTemplate-int-acc
