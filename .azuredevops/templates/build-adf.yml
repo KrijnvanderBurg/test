@@ -30,13 +30,22 @@ stages:
           - task: Npm@1
             inputs:
               command: custom
-              customCommand: run build validate $(Build.SourcesDirectory)/adf /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName) --prefix $(Build.SourcesDirectory)/.azuredevops
+              workingDir: $(Build.SourcesDirectory)/.azuredevops
+              customCommand: >-
+                run build validate
+                $(Build.SourcesDirectory)/adf
+                /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName)
             displayName: Validate ADF resources
 
           - task: Npm@1
             inputs:
               command: custom
-              customCommand: run build export $(Build.SourcesDirectory)/adf /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName) $(Build.ArtifactStagingDirectory) --prefix $(Build.SourcesDirectory)/.azuredevops
+              workingDir: $(Build.SourcesDirectory)/.azuredevops
+              customCommand: >-
+                run build export
+                $(Build.SourcesDirectory)/adf
+                /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName)
+                $(Build.ArtifactStagingDirectory)
             displayName: Generate ARM templates
 
           - task: CopyFiles@2
