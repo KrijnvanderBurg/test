@@ -1,6 +1,4 @@
 # Template for deploying ADF to an environment
-# Handles both standard and linked templates (>256 resources)
-# Uses managed identity for blob storage access (requires Storage Blob Data Reader role)
 
 parameters:
   - name: environment
@@ -18,8 +16,6 @@ stages:
       - deployment: DeployADF
         displayName: Deploy ADF to ${{ parameters.environment }}
         environment: ${{ parameters.environment }}
-        concurrencyGroup: ${{ parameters.environment }}
-        lockBehavior: sequential # Ensure deployments to the same environment are sequential
         strategy:
           runOnce:
             deploy:
@@ -28,107 +24,50 @@ stages:
                   artifact: ${{ parameters.artifactName }}
                   displayName: Download ARM templates
 
-                # Detect if linked templates exist and set variables
-                - task: PowerShell@2
-                  name: DetectTemplateType
-                  displayName: Detect template type
-                  inputs:
-                    targetType: inline
-                    script: |
-                      $linkedPath = "$(Pipeline.Workspace)/${{ parameters.artifactName }}/linkedTemplates"
-                      if (Test-Path $linkedPath) {
-                        Write-Host "##vso[task.setvariable variable=useLinkedTemplates]true"
-                        Write-Host "##vso[task.setvariable variable=templateFile]$linkedPath/ArmTemplate_master.json"
-                        Write-Host "##vso[task.setvariable variable=templateParametersFile]$(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.environment }}.parameters.json"
-                        Write-Host "Linked templates detected - factory has >256 resources"
-                      } else {
-                        Write-Host "##vso[task.setvariable variable=useLinkedTemplates]false"
-                        Write-Host "##vso[task.setvariable variable=templateFile]$(Pipeline.Workspace)/${{ parameters.artifactName }}/ARMTemplateForFactory.json"
-                        Write-Host "##vso[task.setvariable variable=templateParametersFile]$(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.environment }}.parameters.json"
-                        Write-Host "Standard template detected"
-                      }
-                    pwsh: true
-
-                # Upload linked templates to blob storage (only if linked templates exist)
-                - task: AzureCLI@2
-                  displayName: Upload linked templates to blob storage
-                  condition: eq(variables['useLinkedTemplates'], 'true')
-                  inputs:
-                    azureSubscription: $(azureServiceConnection)
-                    scriptType: pscore
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      az storage blob upload-batch `
-                        --account-name $(storageAccountName) `
-                        --destination adf-linked-templates `
-                        --source "$(Pipeline.Workspace)/${{ parameters.artifactName }}/linkedTemplates" `
-                        --overwrite `
-                        --auth-mode login
-
                 # Pre-deployment: Stop triggers
                 - task: AzurePowerShell@5
                   displayName: Pre-deployment - Stop triggers
                   inputs:
-                    azureSubscription: $(azureServiceConnection)
+                    azureSubscription: ${{ variables.azureServiceConnection }}
                     ScriptType: FilePath
                     ScriptPath: $(Pipeline.Workspace)/${{ parameters.artifactName }}/PrePostDeploymentScript.Ver2.ps1
                     ScriptArguments: >
-                      -ArmTemplate $(templateFile)
-                      -ArmTemplateParameters $(templateParametersFile)
-                      -ResourceGroupName $(resourceGroupName)
-                      -DataFactoryName $(dataFactoryName)
+                      -ArmTemplate "$(Pipeline.Workspace)/${{ parameters.artifactName }}/linkedTemplates/ArmTemplate_master.json"
+                      -ArmTemplateParameters "$(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.environment }}.parameters.json"
+                      -ResourceGroupName ${{ variables.resourceGroupName }}
+                      -DataFactoryName ${{ variables.dataFactoryName }}
                       -PreDeployment $true
                       -DeleteDeployment $false
                     azurePowerShellVersion: LatestVersion
                     pwsh: true
 
-                # Deploy ARM template (unified approach using PowerShell for managed identity support)
-                - task: AzurePowerShell@5
+                # Deploy ARM template using linked templates
+                - task: AzureResourceManagerTemplateDeployment@3
                   displayName: Deploy ARM template
                   inputs:
-                    azureSubscription: $(azureServiceConnection)
-                    ScriptType: InlineScript
-                    Inline: |
-                      $useLinked = "$(useLinkedTemplates)"
-                      $templateFile = "$(templateFile)"
-                      $parametersFile = "$(templateParametersFile)"
-                      
-                      $deploymentParams = @{
-                        ResourceGroupName = "$(resourceGroupName)"
-                        TemplateFile = $templateFile
-                        TemplateParameterFile = $parametersFile
-                        factoryName = "$(dataFactoryName)"
-                        LinkedSelfHostedIR_properties_typeProperties_linkedInfo_resourceId = "$(sharedIRResourceId)"
-                      }
-                      
-                      if ($useLinked -eq "true") {
-                        # For linked templates, add container URI (managed identity handles auth)
-                        $containerUri = "https://$(storageAccountName).blob.core.windows.net/adf-linked-templates"
-                        $deploymentParams.Add("containerUri", $containerUri)
-                        # Empty SAS token - relies on managed identity RBAC
-                        $deploymentParams.Add("containerSasToken", "")
-                        Write-Host "Deploying with linked templates from: $containerUri"
-                      } else {
-                        Write-Host "Deploying standard template"
-                      }
-                      
-                      New-AzResourceGroupDeployment @deploymentParams -Mode Incremental -Verbose
-                    azurePowerShellVersion: LatestVersion
-                    pwsh: true
+                    azureResourceManagerConnection: ${{ variables.azureServiceConnection }}
+                    subscriptionId: ${{ variables.subscriptionId }}
+                    resourceGroupName: ${{ variables.resourceGroupName }}
+                    location: westeurope
+                    csmFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/linkedTemplates/ArmTemplate_master.json
+                    csmParametersFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.environment }}.parameters.json
+                    overrideParameters: -factoryName "${{ variables.dataFactoryName }}" -some_fileserver_password (ConvertTo-SecureString "adfhubspokepoc123!" -AsPlainText -Force)
+                    deploymentMode: Incremental
+                    deploymentOutputs: ArmOutputs
 
                 # Post-deployment: Start triggers and cleanup
                 - task: AzurePowerShell@5
                   displayName: Post-deployment - Start triggers and cleanup
                   condition: succeeded()
                   inputs:
-                    azureSubscription: $(azureServiceConnection)
+                    azureSubscription: ${{ variables.azureServiceConnection }}
                     ScriptType: FilePath
                     ScriptPath: $(Pipeline.Workspace)/${{ parameters.artifactName }}/PrePostDeploymentScript.Ver2.ps1
                     ScriptArguments: >
-                      -ArmTemplate $(templateFile)
-                      -ArmTemplateParameters $(templateParametersFile)
-                      -ResourceGroupName $(resourceGroupName)
-                      -DataFactoryName $(dataFactoryName)
+                      -ArmTemplate "$(Pipeline.Workspace)/${{ parameters.artifactName }}/linkedTemplates/ArmTemplate_master.json"
+                      -ArmTemplateParameters "$(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.environment }}.parameters.json"
+                      -ResourceGroupName ${{ variables.resourceGroupName }}
+                      -DataFactoryName ${{ variables.dataFactoryName }}
                       -PreDeployment $false
                       -DeleteDeployment $true
                     azurePowerShellVersion: LatestVersion

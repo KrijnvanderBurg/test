@@ -7,5 +7,6 @@ variables:
   location: <azure-region>
   sharedIRResourceId: /subscriptions/<subscription-id>/resourceGroups/<hub-rg>/providers/Microsoft.DataFactory/factories/<hub-adf>/integrationRuntimes/PlaceholderSHIR
   # Linked templates storage (required for >256 resources)
+  containerName: adf-linked-templates
   storageAccountName: <storage-account>
   storageAccountResourceGroup: <storage-rg>

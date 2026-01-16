@@ -3,14 +3,12 @@ Automated CI/CD for Azure Data Factory spoke deployments using Azure DevOps, fol
 
 ## Architecture
 ```
-Per Environment (int-dev/int-acc):
-
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                           ON-PREMISES NETWORK                           │
 │                                                                         │
 │   ┌─────────────────────────────────────────────────────────────────┐   │
 │   │                      On-Premises Data Source                    │   │
-│   │               (SQL Server, File Shares, Oracle, etc.)           │   │
+│   │             (SQL Server, File Shares, Database, etc.)           │   │
 │   └──────────────────────────────┬──────────────────────────────────┘   │
 │                                  │                                      │
 │                  ┌───────────────┴───────────────┐                      │
@@ -26,7 +24,7 @@ Per Environment (int-dev/int-acc):
 │                                  │                                      │
 └──────────────────────────────────┼──────────────────────────────────────┘
                                    │
-                                   │ HTTPS (443) / Azure Relay
+                                   │ 
                                    │
 ┌──────────────────────────────────┼──────────────────────────────────────┐
 │                                AZURE                                    │
@@ -67,8 +65,8 @@ Per Environment (int-dev/int-acc):
 │   ├── scripts/
 │   │   └── PrePostDeploymentScript.Ver2.ps1  # Microsoft trigger management script
 │   ├── variables/
-│   │   ├── int-dev.yml # int-dev environment variables
-│   │   └── int-acc.yml # int-acc environment variables
+│   │   ├── int-dev.yml    # int-dev environment variables
+│   │   └── int-acc.yml    # int-acc environment variables
 │   └── parameters/
 │       ├── int-dev.parameters.json   # int-dev ARM parameters
 │       └── int-acc.parameters.json   # int-acc ARM parameters
@@ -100,11 +98,9 @@ The Azure DevOps service connection's service principal requires the following r
 |----------|------|---------|
 | **Resource Group** | Contributor | Deploy ADF and related resources via ARM templates |
 | **Data Factory** | Data Factory Contributor | Stop/start triggers via PrePostDeploymentScript |
-| **Storage Account** | Storage Blob Data Reader | Read linked ARM templates from blob storage (managed identity auth) |
 
 ### 3. Configure Git Integration
-
-1. Open your spoke ADF in Azure Portal → ADF Studio
+1. Open spoke ADF in Azure Portal → ADF Studio
 2. Go to **Manage** → **Git configuration**
 3. Configure:
    - Repository type: Azure DevOps Git
@@ -161,6 +157,4 @@ Feature Branch → PR → main branch → Pipeline: Build → Deploy int-dev →
 | Smart trigger management | Ver2 script stops only modified triggers | [Link](https://github.com/Azure/Azure-DataFactory/tree/main/SamplesV2/ContinuousIntegrationAndDelivery) |
 | Shared SHIR (hub-spoke) | Linked IR references hub's PlaceholderSHIR | [Link](https://learn.microsoft.com/en-us/azure/data-factory/create-shared-self-hosted-integration-runtime-powershell#create-a-shared-self-hosted-integration-runtime-in-azure-data-factory-1) |
 | Global parameters | Included in ARM template via ADF Studio setting; parameterized per environment | [Link](https://learn.microsoft.com/en-us/azure/data-factory/author-global-parameters#cicd) |
-| Approval gates | Required before int-acc deployment | [Link](https://learn.microsoft.com/en-us/azure/devops/pipelines/process/approvals) |
-| Incremental deployment | ARM deployment mode set to Incremental | [Link](https://learn.microsoft.com/en-us/azure/data-factory/continuous-integration-delivery#best-practices-for-cicd) |
 | Linked templates support | Auto-detects >256 resources, uploads to blob storage with managed identity auth | [Link](https://learn.microsoft.com/en-us/azure/data-factory/continuous-integration-delivery-linked-templates) |

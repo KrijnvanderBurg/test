@@ -23,7 +23,7 @@ stages:
 
           - task: Npm@1
             inputs:
-              command: ci
+              command: install
               workingDir: $(Build.SourcesDirectory)/.azuredevops
             displayName: Install npm packages
 
@@ -34,7 +34,7 @@ stages:
               customCommand: >-
                 run build validate
                 $(Build.SourcesDirectory)/adf
-                /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName)
+                /subscriptions/${{ variables.subscriptionId }}/resourceGroups/${{ variables.resourceGroupName }}/providers/Microsoft.DataFactory/factories/${{ variables.dataFactoryName }}
             displayName: Validate ADF resources
 
           - task: Npm@1
@@ -44,9 +44,16 @@ stages:
               customCommand: >-
                 run build export
                 $(Build.SourcesDirectory)/adf
-                /subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroupName)/providers/Microsoft.DataFactory/factories/$(dataFactoryName)
-                $(Build.ArtifactStagingDirectory)
+                /subscriptions/${{ variables.subscriptionId }}/resourceGroups/${{ variables.resourceGroupName }}/providers/Microsoft.DataFactory/factories/${{ variables.dataFactoryName }}
+                "ArmTemplate"
             displayName: Generate ARM templates
+
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: $(Build.SourcesDirectory)/.azuredevops/ArmTemplate
+              Contents: "**/*.*"
+              TargetFolder: $(Build.ArtifactStagingDirectory)
+            displayName: Copy ArmTemplate
 
           - task: CopyFiles@2
             inputs:
@@ -57,10 +64,13 @@ stages:
 
           - task: CopyFiles@2
             inputs:
-              SourceFolder: $(Build.SourcesDirectory)/.azuredevops/parameters
-              Contents: "**/*.json"
+              SourceFolder: $(Build.SourcesDirectory)/.azuredevops/parameters/
+              Contents: ${{ parameters.environment }}.parameters.json
               TargetFolder: $(Build.ArtifactStagingDirectory)/parameters
-            displayName: Copy parameter files
+            displayName: Copy parameter file
+
+          - script: ls -laR $(Build.ArtifactStagingDirectory)
+            displayName: List artifact staging directory
 
           - publish: $(Build.ArtifactStagingDirectory)
             artifact: ${{ parameters.artifactName }}
