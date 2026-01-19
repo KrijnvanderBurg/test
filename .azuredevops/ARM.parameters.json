@@ -3,13 +3,16 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "factoryName": {
-      "value": ""
+      "value": "OVERRIDE_IN_CICD"
+    },
+    "PlaceholderSHIR_properties_typeProperties_linkedInfo_resourceId": {
+      "value": "OVERRIDE_IN_CICD"
     },
     "containerUri": {
-      "value": ""
+      "value": "OVERRIDE_IN_CICD"
     },
     "containerSasToken": {
-      "value": ""
+      "value": "OVERRIDE_IN_CICD"
     }
   }
 }

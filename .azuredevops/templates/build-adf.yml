@@ -51,21 +51,21 @@ stages:
           - task: CopyFiles@2
             inputs:
               SourceFolder: $(Build.SourcesDirectory)/.azuredevops/ArmTemplate
-              Contents: "**/*.*"
+              Contents: '**/*.*'
               TargetFolder: $(Build.ArtifactStagingDirectory)
             displayName: Copy ArmTemplate
 
           - task: CopyFiles@2
             inputs:
               SourceFolder: $(Build.SourcesDirectory)/.azuredevops/scripts
-              Contents: "**/*.ps1"
+              Contents: '**/*.ps1'
               TargetFolder: $(Build.ArtifactStagingDirectory)
             displayName: Copy deployment scripts
 
           - task: CopyFiles@2
             inputs:
-              SourceFolder: $(Build.SourcesDirectory)/.azuredevops/parameters/
-              Contents: ${{ parameters.environment }}.parameters.json
+              SourceFolder: $(Build.SourcesDirectory)/.azuredevops/parameters
+              Contents: ARM.parameters.json
               TargetFolder: $(Build.ArtifactStagingDirectory)/parameters
             displayName: Copy parameter file
 
