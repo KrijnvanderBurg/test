@@ -64,9 +64,9 @@ stages:
 
           - task: CopyFiles@2
             inputs:
-              SourceFolder: $(Build.SourcesDirectory)/.azuredevops/parameters
+              SourceFolder: $(Build.SourcesDirectory)/.azuredevops
               Contents: ARM.parameters.json
-              TargetFolder: $(Build.ArtifactStagingDirectory)/parameters
+              TargetFolder: $(Build.ArtifactStagingDirectory)
             displayName: Copy parameter file
 
           - script: ls -laR $(Build.ArtifactStagingDirectory)

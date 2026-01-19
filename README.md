@@ -58,6 +58,7 @@ Automated CI/CD for Azure Data Factory spoke deployments using Azure DevOps, fol
 │   └── arm-template-parameters-definition.json  # Custom ARM parameterization
 ├── .azuredevops/
 │   ├── package.json              # npm package for ARM template generation
+│   ├── ARM.parameters.json       # ARM parameters
 │   ├── azure-pipelines-ci.yml    # Build pipeline (validate + generate ARM)
 │   ├── azure-pipelines-cd.yml    # Release pipeline (uses template)
 │   ├── templates/
@@ -67,9 +68,6 @@ Automated CI/CD for Azure Data Factory spoke deployments using Azure DevOps, fol
 │   ├── variables/
 │   │   ├── int-dev.yml    # int-dev environment variables
 │   │   └── int-acc.yml    # int-acc environment variables
-│   └── parameters/
-│       ├── int-dev.parameters.json   # int-dev ARM parameters
-│       └── int-acc.parameters.json   # int-acc ARM parameters
 └── README.md
 ```
 

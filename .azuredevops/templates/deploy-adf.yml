@@ -51,12 +51,10 @@ stages:
                     resourceGroupName: ${{ variables.resourceGroupName }}
                     location: ${{ variables.location }}
                     csmFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/ARMTemplateForFactory.json
-                    csmParametersFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/ARM.parameters.json
+                    csmParametersFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/ARM.parameters.json
                     overrideParameters: >
                       -factoryName "${{ variables.dataFactoryName }}"
                       -PlaceholderSHIR_properties_typeProperties_linkedInfo_resourceId "${{ variables.linkedIRResourceId }}"
-                      -containerUri "${{ variables.containerUri }}"
-                      -containerSasToken "${{ variables.containerSasToken }}"
                     deploymentMode: Incremental
 
                 # Post-deployment: Start triggers and cleanup
