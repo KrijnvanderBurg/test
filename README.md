@@ -79,7 +79,7 @@ Automated CI/CD for Azure Data Factory spoke deployments using Azure DevOps, fol
 |-----------|---------|---------------|
 | **package.json** | Uses `@microsoft/azure-data-factory-utilities` npm package to validate ADF resources and generate ARM templates without manual publish | [Automated publishing](https://learn.microsoft.com/en-us/azure/data-factory/continuous-integration-delivery-improvements) |
 | **azure-pipelines-cd.yml** | Unified CI/CD pipeline triggered on merge to `main`. Validates, generates ARM templates, and deploys | [CI/CD improvements](https://learn.microsoft.com/en-us/azure/data-factory/continuous-integration-delivery-improvements) |
-| **templates/deploy-adf.yml** | Reusable deployment template. Handles blob storage upload for linked templates, uses `AzurePowerShell@5` with managed identity for deployment | [YAML templates](https://learn.microsoft.com/en-us/azure/devops/pipelines/process/templates) |
+| **templates/deploy-adf.yml** | Reusable deployment template. Uses `AzurePowerShell@5` with managed identity for deployment | [YAML templates](https://learn.microsoft.com/en-us/azure/devops/pipelines/process/templates) |
 | **PrePostDeploymentScript.Ver2.ps1** | Microsoft's official script. Stops only modified triggers before deployment, starts them after, and cleans up deleted resources | [Pre/post deployment script](https://github.com/Azure/Azure-DataFactory/tree/main/SamplesV2/ContinuousIntegrationAndDelivery) |
 | **arm-template-parameters-definition.json** | Located in `adf/` folder. Customizes which properties are parameterized in ARM templates (Microsoft default template) | [Parameterization](https://learn.microsoft.com/en-us/azure/data-factory/continuous-integration-delivery-resource-manager-custom-parameters) |
 | **Linked Self-Hosted IR** | Spoke factories reference a shared SHIR in the hub factory via linked integration runtime | [Shared SHIR](https://learn.microsoft.com/en-us/azure/data-factory/create-shared-self-hosted-integration-runtime-powershell) |
@@ -89,7 +89,6 @@ Automated CI/CD for Azure Data Factory spoke deployments using Azure DevOps, fol
 - Hub ADF with `PlaceholderSHIR` deployed and registered
 - Spoke factory's managed identity granted **Contributor** role on hub's SHIR
 - Azure Key Vault
-- Storage account for linked ARM templates (required for factories >256 resources)
 
 ### 2. Azure RBAC Requirements
 The Azure DevOps service connection's service principal requires the following role assignments:
@@ -125,12 +124,7 @@ variables:
   resourceGroupName: <int-dev-resource-group>
   dataFactoryName: <int-dev-adf-name>
   location: <azure-region>
-  sharedIRResourceId: /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.DataFactory/factories/<hub-adf>/integrationRuntimes/PlaceholderSHIR
-  storageAccountName: <storage-account>
-  storageAccountResourceGroup: <storage-rg>
 ```
-
-> **Linked Templates (>256 resources):** If data factory grows beyond 256 resources, the npm package automatically generates linked templates. These require a storage account because [Azure Resource Manager must access linked templates via HTTP/HTTPS URL](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/linked-templates) during deployment. The pipeline auto-detects linked templates and handles the upload using managed identity authentication.
 
 ### 5. Update ARM template parameters
 - `.azuredevops/parameters/int-dev.parameters.json` — int-dev ARM parameters (Key Vault URL, etc.)
@@ -157,4 +151,4 @@ Feature Branch → PR → main branch → Pipeline: Build → Deploy int-dev →
 | Smart trigger management | Ver2 script stops only modified triggers | [Link](https://github.com/Azure/Azure-DataFactory/tree/main/SamplesV2/ContinuousIntegrationAndDelivery) |
 | Shared SHIR (hub-spoke) | Linked IR references hub's PlaceholderSHIR | [Link](https://learn.microsoft.com/en-us/azure/data-factory/create-shared-self-hosted-integration-runtime-powershell#create-a-shared-self-hosted-integration-runtime-in-azure-data-factory-1) |
 | Global parameters | Included in ARM template via ADF Studio setting; parameterized per environment | [Link](https://learn.microsoft.com/en-us/azure/data-factory/author-global-parameters#cicd) |
-| Linked templates support | Auto-detects >256 resources, uploads to blob storage with managed identity auth | [Link](https://learn.microsoft.com/en-us/azure/data-factory/continuous-integration-delivery-linked-templates) |
+| TODO Linked templates support | Auto-detects >256 resources, uploads to blob storage with managed identity auth | [Link](https://learn.microsoft.com/en-us/azure/data-factory/continuous-integration-delivery-linked-templates) |

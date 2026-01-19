@@ -1,4 +1,5 @@
 # Template for deploying ADF to an environment
+# Uses standard templates (for <256 resources)
 
 parameters:
   - name: environment
@@ -32,8 +33,8 @@ stages:
                     ScriptType: FilePath
                     ScriptPath: $(Pipeline.Workspace)/${{ parameters.artifactName }}/PrePostDeploymentScript.Ver2.ps1
                     ScriptArguments: >
-                      -ArmTemplate "$(Pipeline.Workspace)/${{ parameters.artifactName }}/linkedTemplates/ArmTemplate_master.json"
-                      -ArmTemplateParameters "$(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.environment }}.parameters.json"
+                      -ArmTemplate "$(Pipeline.Workspace)/${{ parameters.artifactName }}/ARMTemplateForFactory.json"
+                      -ArmTemplateParameters "$(Pipeline.Workspace)/${{ parameters.artifactName }}/ARMTemplateParametersForFactory.json"
                       -ResourceGroupName ${{ variables.resourceGroupName }}
                       -DataFactoryName ${{ variables.dataFactoryName }}
                       -PreDeployment $true
@@ -41,19 +42,18 @@ stages:
                     azurePowerShellVersion: LatestVersion
                     pwsh: true
 
-                # Deploy ARM template using linked templates
+                # Deploy ARM template
                 - task: AzureResourceManagerTemplateDeployment@3
                   displayName: Deploy ARM template
                   inputs:
                     azureResourceManagerConnection: ${{ variables.azureServiceConnection }}
                     subscriptionId: ${{ variables.subscriptionId }}
                     resourceGroupName: ${{ variables.resourceGroupName }}
-                    location: westeurope
-                    csmFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/linkedTemplates/ArmTemplate_master.json
-                    csmParametersFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.environment }}.parameters.json
-                    overrideParameters: -factoryName "${{ variables.dataFactoryName }}" -some_fileserver_password (ConvertTo-SecureString "adfhubspokepoc123!" -AsPlainText -Force)
+                    location: ${{ variables.location }}
+                    csmFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/ARMTemplateForFactory.json
+                    csmParametersFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/ARMTemplateParametersForFactory.json
+                    overrideParameters: -factoryName "${{ variables.dataFactoryName }}"
                     deploymentMode: Incremental
-                    deploymentOutputs: ArmOutputs
 
                 # Post-deployment: Start triggers and cleanup
                 - task: AzurePowerShell@5
@@ -64,8 +64,8 @@ stages:
                     ScriptType: FilePath
                     ScriptPath: $(Pipeline.Workspace)/${{ parameters.artifactName }}/PrePostDeploymentScript.Ver2.ps1
                     ScriptArguments: >
-                      -ArmTemplate "$(Pipeline.Workspace)/${{ parameters.artifactName }}/linkedTemplates/ArmTemplate_master.json"
-                      -ArmTemplateParameters "$(Pipeline.Workspace)/${{ parameters.artifactName }}/parameters/${{ parameters.environment }}.parameters.json"
+                      -ArmTemplate "$(Pipeline.Workspace)/${{ parameters.artifactName }}/ARMTemplateForFactory.json"
+                      -ArmTemplateParameters "$(Pipeline.Workspace)/${{ parameters.artifactName }}/ARMTemplateParametersForFactory.json"
                       -ResourceGroupName ${{ variables.resourceGroupName }}
                       -DataFactoryName ${{ variables.dataFactoryName }}
                       -PreDeployment $false
