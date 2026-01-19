@@ -3,10 +3,10 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "factoryName": {
-      "value": "OVERRIDE_IN_CICD"
+      "value": "factory-name-todo"
     },
-    "PlaceholderSHIR_properties_typeProperties_linkedInfo_resourceId": {
-      "value": "OVERRIDE_IN_CICD"
+    "some_password": {
+      "value": ""
     }
   }
 }

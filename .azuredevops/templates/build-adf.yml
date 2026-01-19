@@ -1,5 +1,3 @@
-# Template for building ADF ARM templates for an environment
-
 parameters:
   - name: environment
     type: string
@@ -15,6 +13,7 @@ stages:
     jobs:
       - job: BuildArmTemplates
         displayName: Validate and Generate ARM Templates
+        pool: mdp-tdcpl-azdo-euw-dev
         steps:
           - task: UseNode@1
             inputs:
@@ -53,7 +52,7 @@ stages:
               SourceFolder: $(Build.SourcesDirectory)/.azuredevops/ArmTemplate
               Contents: '**/*.*'
               TargetFolder: $(Build.ArtifactStagingDirectory)
-            displayName: Copy ArmTemplate
+            displayName: Copy ARM template
 
           - task: CopyFiles@2
             inputs:
@@ -64,14 +63,11 @@ stages:
 
           - task: CopyFiles@2
             inputs:
-              SourceFolder: $(Build.SourcesDirectory)/.azuredevops
-              Contents: ARM.parameters.json
+              SourceFolder: $(Build.SourcesDirectory)/.azuredevops/parameters
+              Contents: ${{ parameters.environment }}.parameters.json
               TargetFolder: $(Build.ArtifactStagingDirectory)
             displayName: Copy parameter file
 
-          - script: ls -laR $(Build.ArtifactStagingDirectory)
-            displayName: List artifact staging directory
-
           - publish: $(Build.ArtifactStagingDirectory)
             artifact: ${{ parameters.artifactName }}
-            displayName: Publish ARM templates
+            displayName: Publish build artifact

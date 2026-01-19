@@ -16,6 +16,7 @@ stages:
     jobs:
       - deployment: DeployADF
         displayName: Deploy ADF to ${{ parameters.environment }}
+        pool: mdp-tdcpl-azdo-euw-dev
         environment: ${{ parameters.environment }}
         strategy:
           runOnce:
@@ -51,10 +52,9 @@ stages:
                     resourceGroupName: ${{ variables.resourceGroupName }}
                     location: ${{ variables.location }}
                     csmFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/ARMTemplateForFactory.json
-                    csmParametersFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/ARM.parameters.json
-                    overrideParameters: >
-                      -factoryName "${{ variables.dataFactoryName }}"
-                      -PlaceholderSHIR_properties_typeProperties_linkedInfo_resourceId "${{ variables.linkedIRResourceId }}"
+                    csmParametersFile: $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.environment }}.parameters.json
+                    # overrideParameters: >
+                    #   -some_password "password123"
                     deploymentMode: Incremental
 
                 # Post-deployment: Start triggers and cleanup

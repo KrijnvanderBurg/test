@@ -5,5 +5,3 @@ variables:
   resourceGroupName: <int-dev-resource-group>
   dataFactoryName: <int-dev-adf-name>
   location: <azure-region>
-  linkedIRResourceId: '/subscriptions/yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy/resourceGroups/rg-hub-int-dev/providers/Microsoft.DataFactory/factories/adf-hub-int-dev/integrationRuntimes/SelfHostedIR'
-  
